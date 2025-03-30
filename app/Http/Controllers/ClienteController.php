@@ -1,7 +1,4 @@
 <?php
-
-
-
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
@@ -9,11 +6,6 @@ use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
-    public function __construct()
-    {
-        
-    }
-
     /**
      * Obtener todos los clientes
      */
@@ -34,7 +26,10 @@ class ClienteController extends Controller
         ]);
 
         // Crear cliente
-        $cliente = Cliente::create($request->all());
+        $cliente = Cliente::create([
+            'nombre' => $request->nombre,
+            'telefono' => $request->telefono
+        ]);
 
         return response()->json([
             'message' => 'Cliente creado exitosamente',
