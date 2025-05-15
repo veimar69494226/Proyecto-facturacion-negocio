@@ -1,66 +1,107 @@
 <?php
 
+
 namespace App\Http\Controllers;
-
+use App\Models\Vendedor;
 use App\Models\Pedido;
+use App\Models\Cliente;
+use App\Models\Sucursal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
-class PedidoController extends Controller
+class PedidoController 
 {
+    // Mostrar todos los pedidos
     public function index()
     {
-        return response()->json(Pedido::with('cliente')->get(), 200);
+        $pedidos = Pedido::with(['cliente', 'vendedor', 'sucursal', 'detalles'])->get(); // Cargar las relaciones
+
+        return response()->json($pedidos, 200);
     }
 
+    // Crear un nuevo pedido
     public function store(Request $request)
     {
-        $request->validate([
+        // Validación de los datos de entrada
+        $validator = Validator::make($request->all(), [
             'idCliente' => 'required|exists:cliente,id',
-            'fecha' => 'required|date',
+            'idVendedor' => 'required|exists:vendedor,id',
+            'idSucursal' => 'required|exists:sucursal,id',
+           'fecha' => 'required|date_format:Y-m-d H:i:s',
         ]);
 
-        $pedido = Pedido::create($request->all());
+        if ($validator->fails()) {  
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Crear el pedido
+        $pedido = Pedido::create([
+            'idCliente' => $request->idCliente,
+            'idVendedor' => $request->idVendedor,
+            'idSucursal' => $request->idSucursal,
+            'fecha' => $request->fecha,
+        ]);
 
         return response()->json([
-            'message' => 'pedido registrado exitosamente',
-            'data' => $pedido
+            'message' => 'Pedido creado exitosamente',
+            'pedido' => $pedido,
         ], 201);
     }
 
+    // Mostrar un solo pedido por ID
     public function show($id)
     {
-        $pedido = Pedido::with('cliente', 'detallePedidos')->find($id);
+        $pedido = Pedido::with(['cliente', 'vendedor', 'sucursal', 'detalles'])->find($id);
 
         if (!$pedido) {
-            return response()->json(['error' => 'Pedido no encontrado'], 404);
+            return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
         return response()->json($pedido, 200);
     }
 
+    // Actualizar un pedido
     public function update(Request $request, $id)
     {
         $pedido = Pedido::find($id);
 
         if (!$pedido) {
-            return response()->json(['error' => 'Pedido no encontrado'], 404);
+            return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
+        // Validación de los datos de entrada
+        $validator = Validator::make($request->all(), [
+            'idCliente' => 'sometimes|required|exists:clientes,id',
+            'idVendedor' => 'sometimes|required|exists:vendedores,id',
+            'idSucursal' => 'sometimes|required|exists:sucursales,id',
+            'fecha' => 'sometimes|required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Actualizar el pedido
         $pedido->update($request->all());
 
-        return response()->json($pedido, 200);
+        return response()->json([
+            'message' => 'Pedido actualizado exitosamente',
+            'pedido' => $pedido,
+        ], 200);
     }
 
+    // Eliminar un pedido
     public function destroy($id)
     {
         $pedido = Pedido::find($id);
 
         if (!$pedido) {
-            return response()->json(['error' => 'Pedido no encontrado'], 404);
+            return response()->json(['message' => 'Pedido no encontrado'], 404);
         }
 
+        // Eliminar el pedido
         $pedido->delete();
 
-        return response()->json(['message' => 'Pedido eliminado correctamente'], 200);
+        return response()->json(['message' => 'Pedido eliminado exitosamente'], 200);
     }
 }

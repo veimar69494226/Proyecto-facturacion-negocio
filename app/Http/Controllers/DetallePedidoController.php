@@ -1,73 +1,76 @@
 <?php
 
+
 namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
 use Illuminate\Http\Request;
 use App\Models\Vendedor;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Venta;
-class DetallePedidoController extends Controller
+class DetallePedidoController 
 {
     public function index()
     {
         return response()->json(DetallePedido::with('pedido', 'producto')->get(), 200);
     }
 
-    
-    public function store(Request $request)
+public function store(Request $request)
 {
-    // Validar la petición
-    $request->validate([
-        'idPedido' => 'required|exists:pedido,id', // Verifica que el id del pedido exista
-        'productos' => 'required|array', // Asegura que se pasen productos
-        'productos.*.idProducto' => 'required|exists:producto,id', // Verifica que los productos existen
-        'productos.*.cantidad' => 'required|integer|min:1', // Verifica que la cantidad sea válida
-        'estado_pedido' => 'required|in:para llevar,para mesa', // Verifica el estado del pedido
+    // Validación del request
+    $validator = Validator::make($request->all(), [
+        'idPedido' => 'required|exists:pedido,id',
+        'idVendedor' => 'required|exists:vendedor,id',
+        'estado_pedido' => 'required|in:para llevar,para mesa',
+        'productos' => 'required|array|min:1',
+        'productos.*.idProducto' => 'required|exists:producto,id',
+        'productos.*.cantidad' => 'required|integer|min:1',
     ]);
 
-    // Obtener el pedido
-    $pedido = Pedido::find($request->idPedido);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
 
-    // Inicializar el total del pedido
+    // Obtener el pedido y su sucursal
+    $pedido = Pedido::findOrFail($request->idPedido);
+    $idSucursal = $pedido->idSucursal;
+
     $totalPedido = 0;
 
-    // Iterar sobre cada producto
     foreach ($request->productos as $productoData) {
-        $producto = Producto::find($productoData['idProducto']);
+        $producto = Producto::findOrFail($productoData['idProducto']);
         $cantidad = $productoData['cantidad'];
+        $precioUnitario = $producto->precio;
+        $totalPorProducto = $precioUnitario * $cantidad;
 
-        // Calcular el subtotal de cada producto
-        $subtotal = $producto->precio * $cantidad;
-
-        // Crear un nuevo detalle de pedido
-        $detalle = DetallePedido::create([
-            'idPedido' => $request->idPedido,
+        DetallePedido::create([
+            'idPedido' => $pedido->id,
             'idProducto' => $producto->id,
             'cantidad' => $cantidad,
             'estado_pedido' => $request->estado_pedido,
-            'subtotal' => $subtotal,
-            'total' => $subtotal, // El total por producto es igual al subtotal por ahora
+            'subtotal' => $precioUnitario,
+            'total' => $totalPorProducto,
         ]);
 
-        // Acumular el subtotal al total del pedido
-        $totalPedido += $subtotal;
+        $totalPedido += $totalPorProducto;
     }
 
-    // Después de crear los detalles del pedido, registrar la venta automáticamente
+    // Crear la venta con la sucursal obtenida automáticamente
     $venta = Venta::create([
-        'idPedido' => $request->idPedido,
-        'idVendedor' => $request->idVendedor, // Se asume que el vendedor está en la petición
-        'total' => $totalPedido, // El total de la venta es la suma de los subtotales
-        'fecha_venta' => now(), // Fecha actual
+        'idPedido' => $pedido->id,
+        'idVendedor' => $request->idVendedor,
+        'total' => $totalPedido,
+        'fecha_venta' => now(),
+        'idSucursal' => $idSucursal
     ]);
 
-    // Retornar la respuesta con la venta registrada
     return response()->json([
-        'message' => 'Detalle de pedido registrado y venta realizada',
-        'data' => $venta
+        'message' => 'Detalle de pedido registrado y venta realizada exitosamente',
+        'venta' => $venta
     ], 201);
 }
+
 
     public function show($id)
     {

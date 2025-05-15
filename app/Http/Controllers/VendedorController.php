@@ -1,70 +1,92 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Usuarios;
 use App\Models\Vendedor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
-class VendedorController extends Controller
+class VendedorController 
 {
+    // Mostrar todos los vendedores
     public function index()
     {
-        return response()->json(Vendedor::all(), 200);  // Devuelve todos los vendedores
+        $vendedores = Vendedor::with('usuario')->get(); // Obtener todos los vendedores con la relación de usuario
+
+        return response()->json($vendedores, 200);
     }
 
+    // Crear un nuevo vendedor
     public function store(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',  // Valida el nombre
-        ]);
+{
+    $request->validate([
+        'idUsuarios' => 'required|exists:usuarios,id', // Verifica que el idUsuarios exista en la tabla usuarios
+        'telefono' => 'nullable|string|max:255', // Si el teléfono es opcional
+    ]);
 
-        $vendedor = Vendedor::create($request->all());  // Crea un nuevo vendedor
+    $vendedor = Vendedor::create([
+        'idUsuarios' => $request->idUsuarios,
+        'telefono' => $request->telefono,
+    ]);
 
-        return response()->json([
+    return response()->json([
+        'message' => 'Vendedor creado exitosamente',
+        'vendedor' => $vendedor
+    ], 201);
+}
 
-           
-         'message' => 'Vendedor creado exitosamente',
-            'data' => $vendedor
-           
-        ]
-            
-            , 201);  // Devuelve el vendedor creado
-    }
-
+    // Obtener un solo vendedor por ID
     public function show($id)
     {
-        $vendedor = Vendedor::find($id);  // Busca un vendedor por ID
+        $vendedor = Vendedor::with('usuario')->find($id);
 
         if (!$vendedor) {
-            return response()->json(['error' => 'Vendedor no encontrado'], 404);
+            return response()->json(['message' => 'Vendedor no encontrado'], 404);
         }
 
-        return response()->json($vendedor, 200);  // Devuelve el vendedor
+        return response()->json($vendedor, 200);
     }
 
+    // Actualizar un vendedor
     public function update(Request $request, $id)
     {
         $vendedor = Vendedor::find($id);
 
         if (!$vendedor) {
-            return response()->json(['error' => 'Vendedor no encontrado'], 404);
+            return response()->json(['message' => 'Vendedor no encontrado'], 404);
         }
 
-        $vendedor->update($request->all());  // Actualiza el vendedor
+        // Validación de los datos de entrada
+        $validator = Validator::make($request->all(), [
+            'idUsuarios' => 'sometimes|required|exists:usuarios,id',
+            'telefono' => 'nullable|string|max:15',
+        ]);
 
-        return response()->json($vendedor, 200);  // Devuelve el vendedor actualizado
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Actualizar el vendedor
+        $vendedor->update($request->all());
+
+        return response()->json([
+            'message' => 'Vendedor actualizado exitosamente',
+            'vendedor' => $vendedor,
+        ], 200);
     }
 
+    // Eliminar un vendedor
     public function destroy($id)
     {
         $vendedor = Vendedor::find($id);
 
         if (!$vendedor) {
-            return response()->json(['error' => 'Vendedor no encontrado'], 404);
+            return response()->json(['message' => 'Vendedor no encontrado'], 404);
         }
 
-        $vendedor->delete();  // Elimina el vendedor
+        // Eliminar el vendedor
+        $vendedor->delete();
 
-        return response()->json(['message' => 'Vendedor eliminado correctamente'], 200);
+        return response()->json(['message' => 'Vendedor eliminado exitosamente'], 200);
     }
 }

@@ -4,29 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateVentaTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
         Schema::create('venta', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('idPedido')->unsigned()->constrained('pedido')->onDelete('cascade');
-            $table->foreignId('idVendedor')->unsigned()->constrained('vendedor')->onDelete('cascade');
+            $table->foreignId('idPedido')->constrained('pedido');
+            $table->foreignId('idVendedor')->constrained('vendedor');
             $table->decimal('total', 10, 2);
             $table->dateTime('fecha_venta');
+            $table->foreignId('idSucursal')->constrained('sucursal');
             $table->timestamps();
         });
     }
-    
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('venta');
     }
-};
+}

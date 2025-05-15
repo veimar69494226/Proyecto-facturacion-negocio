@@ -9,12 +9,19 @@ class Producto extends Model
 {
     use HasFactory;
 
-    protected $table = 'producto'; // importante porque no es plural
+    // Especificamos el nombre de la tabla
+    protected $table = 'producto';
 
+    // Campos que se pueden llenar de forma masiva
     protected $fillable = [
         'nombre',
         'precio',
         'descripcion',
         'cantidad',
+        'imagen',
+        'categoria',
     ];
+
+    // Si tu tabla no tiene los timestamps, puedes deshabilitarlos
+    // public $timestamps = false;
 }

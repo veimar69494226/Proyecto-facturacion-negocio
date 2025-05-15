@@ -9,8 +9,10 @@ class DetallePedido extends Model
 {
     use HasFactory;
 
-    protected $table = 'detalle_pedido'; // Tabla singular
+    // Especificamos el nombre de la tabla
+    protected $table = 'detalle_pedido';
 
+    // Campos que se pueden llenar de forma masiva
     protected $fillable = [
         'idPedido',
         'idProducto',
@@ -20,13 +22,13 @@ class DetallePedido extends Model
         'total',
     ];
 
-    // Relación con Pedido
+    // Relación con el modelo Pedido
     public function pedido()
     {
         return $this->belongsTo(Pedido::class, 'idPedido');
     }
 
-    // Relación con Producto
+    // Relación con el modelo Producto
     public function producto()
     {
         return $this->belongsTo(Producto::class, 'idProducto');

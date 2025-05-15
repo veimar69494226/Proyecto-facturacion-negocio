@@ -4,27 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreatePedidoTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
         Schema::create('pedido', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('idCliente')->constrained('cliente')->onDelete('cascade');
+            $table->foreignId('idCliente')->constrained('cliente');
+            $table->foreignId('idVendedor')->constrained('vendedor'); // El vendedor es un usuario
+            $table->foreignId('idSucursal')->constrained('sucursal');
             $table->dateTime('fecha');
             $table->timestamps();
         });
     }
-    
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('pedido');
     }
-};
+}
