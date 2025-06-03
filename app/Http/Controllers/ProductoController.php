@@ -25,7 +25,7 @@ class ProductoController
             'precio' => 'required|numeric',
             'descripcion' => 'nullable|string',
             'cantidad' => 'required|integer',
-            'imagen' => 'required|string|max:255',  // Suponiendo que se pasa una URL o ruta de imagen
+            'imagen' => 'required|string|max:455',  // Suponiendo que se pasa una URL o ruta de imagen
             'categoria' => 'required|string|max:255',
         ]);
 

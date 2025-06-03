@@ -14,7 +14,7 @@ class CreateProductoTable extends Migration
             $table->decimal('precio', 8, 2);
             $table->text('descripcion')->nullable();
             $table->integer('cantidad');
-            $table->string('imagen');
+            $table->string('imagen',500);
             $table->string('categoria');
             $table->timestamps();
         });
