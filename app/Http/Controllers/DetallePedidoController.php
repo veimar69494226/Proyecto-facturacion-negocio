@@ -71,41 +71,103 @@ public function store(Request $request)
     ], 201);
 }
 
+   public function show($id)
+{
+    $detallePedido = DetallePedido::with('pedido', 'producto')->find($id);
 
-    public function show($id)
-    {
-        $detallePedido = DetallePedido::with('pedido', 'producto')->find($id);
-
-        if (!$detallePedido) {
-            return response()->json(['error' => 'Detalle del pedido no encontrado'], 404);
-        }
-
-        return response()->json($detallePedido, 200);
+    if (!$detallePedido) {
+        return response()->json(['error' => 'Detalle del pedido no encontrado'], 404);
     }
 
-    public function update(Request $request, $id)
-    {
-        $detallePedido = DetallePedido::find($id);
+    return response()->json($detallePedido, 200);
+}
 
-        if (!$detallePedido) {
-            return response()->json(['error' => 'Detalle del pedido no encontrado'], 404);
-        }
 
-        $detallePedido->update($request->all());
+    public function update(Request $request, $idPedido)
+{
+    // Validación
+    $validator = Validator::make($request->all(), [
+        'idVendedor' => 'required|exists:vendedor,id',
+        'estado_pedido' => 'required|in:para llevar,para mesa',
+        'productos' => 'required|array|min:1',
+        'productos.*.idProducto' => 'required|exists:producto,id',
+        'productos.*.cantidad' => 'required|integer|min:1',
+    ]);
 
-        return response()->json($detallePedido, 200);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
+
+    // Buscar el pedido
+    $pedido = Pedido::find($idPedido);
+    if (!$pedido) {
+        return response()->json(['message' => 'Pedido no encontrado'], 404);
+    }
+
+    $idSucursal = $pedido->idSucursal;
+
+    // Borrar detalles anteriores del pedido
+    DetallePedido::where('idPedido', $pedido->id)->delete();
+
+    $totalPedido = 0;
+
+    foreach ($request->productos as $productoData) {
+        $producto = Producto::findOrFail($productoData['idProducto']);
+        $cantidad = $productoData['cantidad'];
+        $precioUnitario = $producto->precio;
+        $totalPorProducto = $precioUnitario * $cantidad;
+
+        DetallePedido::create([
+            'idPedido' => $pedido->id,
+            'idProducto' => $producto->id,
+            'cantidad' => $cantidad,
+            'estado_pedido' => $request->estado_pedido,
+            'subtotal' => $precioUnitario,
+            'total' => $totalPorProducto,
+        ]);
+
+        $totalPedido += $totalPorProducto;
+    }
+
+    // Actualizar o crear la venta
+    $venta = Venta::where('idPedido', $pedido->id)->first();
+    if ($venta) {
+        // actualizar
+        $venta->update([
+            'idVendedor' => $request->idVendedor,
+            'total' => $totalPedido,
+            'fecha_venta' => now(),
+            'idSucursal' => $idSucursal
+        ]);
+    } else {
+        // si no existía, crear
+        $venta = Venta::create([
+            'idPedido' => $pedido->id,
+            'idVendedor' => $request->idVendedor,
+            'total' => $totalPedido,
+            'fecha_venta' => now(),
+            'idSucursal' => $idSucursal
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Pedido y venta actualizados exitosamente',
+        'venta' => $venta
+    ], 200);
+}
+
 
     public function destroy($id)
-    {
-        $detallePedido = DetallePedido::find($id);
+{
+    $detallePedido = DetallePedido::find($id);
 
-        if (!$detallePedido) {
-            return response()->json(['error' => 'Detalle del pedido no encontrado'], 404);
-        }
-
-        $detallePedido->delete();
-
-        return response()->json(['message' => 'Detalle del pedido eliminado correctamente'], 200);
+    if (!$detallePedido) {
+        return response()->json(['error' => 'Detalle del pedido no encontrado'], 404);
     }
+
+    $detallePedido->delete();
+
+    return response()->json(['message' => 'Detalle del pedido eliminado correctamente'], 200);
+}
+
 }

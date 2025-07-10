@@ -15,6 +15,7 @@ use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\Sucursal;
 use App\Models\Vendedor;
+use App\Models\Venta;
 
 // Definir ruta API de prueba
 Route::get('/test', function () {
@@ -45,3 +46,11 @@ Route::apiResource('sucursal', SucursalController::class);
 Route::apiResource('producto', ProductoController::class);
 //ruta para detalle pedido
 Route::apiResource('detalle-pedido',DetallePedidoController::class);
+//actualizar
+Route::put('/detalle-pedido/{idPedido}', [DetallePedidoController::class, 'update']);
+
+// Obtener el total de ventas del día (opcionalmente con fecha)
+  Route::get('/ventas/total-dia/{fecha?}', [VentaController::class, 'getTotalVentasDelDia']);
+
+// ruta venta
+Route::apiResource('venta',VentaController::class);
