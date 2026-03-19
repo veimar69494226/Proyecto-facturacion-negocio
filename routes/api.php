@@ -24,6 +24,8 @@ Route::post('usuario/login', [UsuariosController::class, 'login']);
 // Rutas para obtener todos los usuarios y por ID
 Route::get('usuarios', [UsuariosController::class, 'getAllUsers']);
 Route::get('usuario/{id}', [UsuariosController::class, 'getUserById']);
+Route::put('usuario/{id}', [UsuariosController::class, 'update']);
+Route::delete('usuario/{id}', [UsuariosController::class, 'destroy']);
 
 // Rutas CRUD normales
 Route::apiResource('cliente', ClienteController::class);
