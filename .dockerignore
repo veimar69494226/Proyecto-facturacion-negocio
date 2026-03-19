@@ -3,6 +3,8 @@
 node_modules
 vendor
 .env
+.docker/ca.pem
+.docker/vhost.conf
 storage/logs
 storage/framework/cache
 storage/framework/sessions
