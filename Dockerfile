@@ -25,6 +25,7 @@ RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 COPY .docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+COPY .docker/ca.pem /etc/ssl/certs/aiven-ca.pem
 
 EXPOSE 80
 
