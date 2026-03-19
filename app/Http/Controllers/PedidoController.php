@@ -1,20 +1,17 @@
 <?php
 
-
 namespace App\Http\Controllers;
-use App\Models\Vendedor;
+
 use App\Models\Pedido;
-use App\Models\Cliente;
-use App\Models\Sucursal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class PedidoController 
+class PedidoController extends Controller
 {
     // Mostrar todos los pedidos
     public function index()
     {
-        $pedidos = Pedido::with(['cliente', 'vendedor', 'sucursal', 'detalles'])->get(); // Cargar las relaciones
+        $pedidos = Pedido::with(['cliente', 'vendedor', 'sucursal', 'detalles'])->get();
 
         return response()->json($pedidos, 200);
     }
@@ -27,10 +24,10 @@ class PedidoController
             'idCliente' => 'required|exists:cliente,id',
             'idVendedor' => 'required|exists:vendedor,id',
             'idSucursal' => 'required|exists:sucursal,id',
-           'fecha' => 'required|date_format:Y-m-d H:i:s',
+            'fecha' => 'required|date_format:Y-m-d H:i:s',
         ]);
 
-        if ($validator->fails()) {  
+        if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -71,10 +68,10 @@ class PedidoController
 
         // Validación de los datos de entrada
         $validator = Validator::make($request->all(), [
-            'idCliente' => 'sometimes|required|exists:clientes,id',
-            'idVendedor' => 'sometimes|required|exists:vendedores,id',
-            'idSucursal' => 'sometimes|required|exists:sucursales,id',
-            'fecha' => 'sometimes|required|date',
+            'idCliente' => 'sometimes|required|exists:cliente,id',
+            'idVendedor' => 'sometimes|required|exists:vendedor,id',
+            'idSucursal' => 'sometimes|required|exists:sucursal,id',
+            'fecha' => 'sometimes|required|date_format:Y-m-d H:i:s',
         ]);
 
         if ($validator->fails()) {
@@ -82,7 +79,12 @@ class PedidoController
         }
 
         // Actualizar el pedido
-        $pedido->update($request->all());
+        $pedido->update($request->only([
+            'idCliente',
+            'idVendedor',
+            'idSucursal',
+            'fecha'
+        ]));
 
         return response()->json([
             'message' => 'Pedido actualizado exitosamente',

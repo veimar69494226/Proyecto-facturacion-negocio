@@ -9,18 +9,25 @@ class Vendedor extends Model
 {
     use HasFactory;
 
-    // Tabla asociada
     protected $table = 'vendedor';
 
-    // Campos que se pueden llenar de forma masiva
     protected $fillable = [
         'idUsuarios',
         'telefono',
     ];
 
-    // Relación con Usuario (un vendedor es un usuario)
     public function usuario()
     {
-        return $this->belongsTo(Usuarios::class , 'idUsuarios');
+        return $this->belongsTo(Usuarios::class, 'idUsuarios');
+    }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'idVendedor');
+    }
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'idVendedor');
     }
 }

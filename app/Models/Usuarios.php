@@ -1,43 +1,49 @@
 <?php
 
-
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Usuarios extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
-    // Establecer los campos que pueden ser llenados de forma masiva
+    protected $table = 'usuarios';
+
     protected $fillable = [
-        'nombre',      // Nombre completo del usuario
-        'email',       // Correo electrónico único
-        'password',    // Contraseña (encriptada)
-        'role',        // Rol de usuario: admin, vendedor, etc.
+        'nombre',
+        'email',
+        'password',
+        'role',
     ];
 
-    // Para evitar que la contraseña sea incluida en los resultados de las consultas
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
-    // Para poder realizar la validación de la contraseña usando el sistema de autenticación
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
 
-    // Puedes agregar un método para verificar si el usuario es un administrador
-    public function isAdmin()
+    public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
-    // Método para verificar si el usuario es un vendedor
-    public function isVendedor()
+    public function isVendedor(): bool
     {
         return $this->role === 'vendedor';
+    }
+
+    public function vendedor()
+    {
+        return $this->hasOne(Vendedor::class, 'idUsuarios');
     }
 }

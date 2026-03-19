@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 
-class ClienteController 
+class ClienteController  extends Controller
 {
     // Método para crear un nuevo cliente
     public function store(Request $request)

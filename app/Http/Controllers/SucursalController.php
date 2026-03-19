@@ -6,7 +6,7 @@ use App\Models\Sucursal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class SucursalController 
+class SucursalController extends Controller
 {
     // Mostrar todas las sucursales
     public function index()

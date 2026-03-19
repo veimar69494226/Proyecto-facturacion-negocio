@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ class Venta extends Model
         'idVendedor',
         'total',
         'fecha_venta',
-        'idSucursal' 
+        'idSucursal',
     ];
 
     public function pedido()
@@ -26,5 +27,10 @@ class Venta extends Model
     public function vendedor()
     {
         return $this->belongsTo(Vendedor::class, 'idVendedor');
+    }
+
+    public function sucursal()
+    {
+        return $this->belongsTo(Sucursal::class, 'idSucursal');
     }
 }

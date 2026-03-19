@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Venta;
 use Illuminate\Http\Request;
 
-class VentaController 
+class VentaController extends Controller
 {
     public function index()
     {
@@ -60,6 +60,14 @@ public function getTotalVentasDelDia($fecha = null)
         if (!$venta) {
             return response()->json(['error' => 'Venta no encontrada'], 404);
         }
+
+        $request->validate([
+    'idPedido' => 'sometimes|required|exists:pedido,id',
+    'idVendedor' => 'sometimes|required|exists:vendedor,id',
+    'total' => 'sometimes|required|numeric',
+    'fecha_venta' => 'sometimes|required|date',
+    'idSucursal' => 'sometimes|required|exists:sucursal,id',
+]);
 
         $venta->update($request->all());
 

@@ -6,7 +6,7 @@ use App\Models\Vendedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class VendedorController 
+class VendedorController extends Controller
 {
     // Mostrar todos los vendedores
     public function index()
