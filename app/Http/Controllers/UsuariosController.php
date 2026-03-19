@@ -92,4 +92,54 @@ class UsuariosController extends Controller
             'usuario' => $usuario
         ], 200);
     }
+
+    // Actualizar un usuario
+    public function update(Request $request, $id)
+    {
+        $usuario = Usuarios::find($id);
+
+        if (!$usuario) {
+            return response()->json(['message' => 'Usuario no encontrado'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:usuarios,email,' . $id,
+            'password' => 'sometimes|required|string|min:8',
+            'role' => 'sometimes|required|in:admin,vendedor',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $request->only(['nombre', 'email', 'role']);
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $usuario->update($data);
+
+        return response()->json([
+            'message' => 'Usuario actualizado exitosamente',
+            'usuario' => $usuario
+        ], 200);
+    }
+
+    // Eliminar un usuario
+    public function destroy($id)
+    {
+        $usuario = Usuarios::find($id);
+
+        if (!$usuario) {
+            return response()->json(['message' => 'Usuario no encontrado'], 404);
+        }
+
+        $usuario->delete();
+
+        return response()->json([
+            'message' => 'Usuario eliminado exitosamente'
+        ], 200);
+    }
 }
